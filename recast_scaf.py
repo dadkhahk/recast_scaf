@@ -9,8 +9,22 @@ import json
 """
 python recast_scaf.py /data/dadkhahe/HPC_DME_Example/CS029608_Schultz ./try2 "platform"
 """
+###fix metadata path and set it as an argument
+###use this path:/CCR_SCAF_Archive/Anish_Thomas_lab/CS029608_Schultz/Analysis/
+###make a metadata file for project folder as well
 
-def build_analysis_metadata(analysis_directory, new_analysis_file_path, metadata_file_path):
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+def convert_metadata_json_to_dict(metadata_json):
+	"""
+	"""
+	f = open(metadata_json) 
+	
+	json_Dict = json.load(f)
+	
+	return json_Dict
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+def build_analysis_metadata(analysis_directory, new_analysis_file_path, metadata_file_path, platform):
 	"""
 	"""
 	metadata_Dict = {}
@@ -36,6 +50,18 @@ def build_analysis_metadata(analysis_directory, new_analysis_file_path, metadata
 	return True
 
 
+def build_project_name_metadata(destination_path, project_name, top_metadata):
+	"""
+	"""
+	metadata_file_path = destination_path + "/" + project_name + ".metadata.json"
+	# metadata_ = json.dumps(top_metadata)
+
+	with open(metadata_file_path, 'w', encoding='utf-8') as f:
+		json.dump(top_metadata, f, ensure_ascii=False, indent=4)
+
+	return True
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
 def build_result_metadata(result_directory, new_result_file_path, metadata_file_path):
 	metadata_Dict = {}
 	metadata_Dict["metadataEntries"] = [
@@ -55,8 +81,8 @@ def build_result_metadata(result_directory, new_result_file_path, metadata_file_
 
 	return True
 
-
-def build_fastq_metadata(fastq_directory, new_fastq_file_path, metadata_file_path):
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+def build_fastq_metadata(fastq_directory, new_fastq_file_path, metadata_file_path, platform):
 	metadata_Dict = {}
 	metadata_Dict["metadataEntries"] = [
 		{
@@ -79,7 +105,7 @@ def build_fastq_metadata(fastq_directory, new_fastq_file_path, metadata_file_pat
 
 	return True
 
-
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
 def build_scaf_sample_Dict(source_directory):
 	"""
 	"""
@@ -143,15 +169,22 @@ def build_scaf_sample_Dict(source_directory):
 
 	return scaf_sample_Dict
 
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+def build_new_structure(scaf_sample_Dict, destination_path, hpc_dme_path, platform, project_name, top_metadata):
+	"""
+	"""
+	if not os.path.exists(destination_path):
+		os.makedirs(destination_path)
+	build_project_name_metadata(destination_path, project_name, top_metadata)
 
-def build_new_structure(scaf_sample_Dict, destination_directory):
-	"""
-	"""
+	destination_directory = destination_path + "/" + project_name
+
 	for each_sample in scaf_sample_Dict:
 
 		if each_sample == "result":
 			#
 			result_directory = destination_directory + "/Analysis"
+			hpc_dme_result_directry = hpc_dme_path + "/Analysis"
 			if not os.path.exists(result_directory):
 				os.makedirs(result_directory)
 			else:
@@ -160,15 +193,17 @@ def build_new_structure(scaf_sample_Dict, destination_directory):
 
 				result_file = each_result.split("/")[-1]
 				new_result_file_path = result_directory + "/" + result_file + ".tar"
+				hpc_dme_result_file_Path = hpc_dme_result_directry + "/" + result_file + ".tar"
 				Path(new_result_file_path).touch()
 				metadata_json_file_path = new_result_file_path + ".metadata.json"
-				build_result_metadata(result_directory, new_result_file_path, metadata_json_file_path)
+				build_result_metadata(hpc_dme_result_directry, hpc_dme_result_file_Path, metadata_json_file_path)
 
 			else:
 				pass
 		elif each_sample == "excel_file":
 			#
 			result_directory = destination_directory + "/Analysis"
+			hpc_dme_result_directry = hpc_dme_path + "/Analysis"
 			if not os.path.exists(result_directory):
 				os.makedirs(result_directory)
 			else:
@@ -177,14 +212,17 @@ def build_new_structure(scaf_sample_Dict, destination_directory):
 				##
 				each_excel_file = os.path.basename(each_excel)
 				new_excel_file_path = result_directory + "/" + each_excel_file
+				hpc_dme_excel_file_Path = hpc_dme_result_directry + "/" + each_excel_file
 				shutil.copyfile(each_excel, new_excel_file_path)
 				metadata_json_file_path = new_excel_file_path + ".metadata.json"
-				build_result_metadata(result_directory, new_excel_file_path, metadata_json_file_path)
+				build_result_metadata(hpc_dme_result_directry, hpc_dme_excel_file_Path, metadata_json_file_path)
 		else:
 			#
 			sample_directory = destination_directory + "/" + each_sample
 			fastq_directory = destination_directory + "/" + each_sample + "/FASTQ"
+			hpc_dme_fastq_directry = hpc_dme_path + "/" + each_sample + "/FASTQ"
 			primary_analysis_directory = destination_directory + "/" + each_sample + "/Primary_Analysis_Output"
+			hpc_dme_primary_analysis_directry = hpc_dme_path + "/" + each_sample + "/Primary_Analysis_Output"
 			if not os.path.exists(sample_directory):
 				os.makedirs(sample_directory)
 				os.makedirs(fastq_directory)
@@ -197,9 +235,10 @@ def build_new_structure(scaf_sample_Dict, destination_directory):
 					##
 					fastq_file_name = os.path.basename(each_fastq).split(".tar")[0]
 					new_fastq_file_path = fastq_directory + "/" + fastq_file_name + "_FQ_" + each_flowcell + ".tar"
+					hc_dme_new_fastq_file_path = hpc_dme_fastq_directry + "/" + fastq_file_name + "_FQ_" + each_flowcell + ".tar"
 					Path(new_fastq_file_path).touch()
 					metadata_json_file_path = new_fastq_file_path + ".metadata.json"
-					build_fastq_metadata(fastq_directory, new_fastq_file_path, metadata_json_file_path)
+					build_fastq_metadata(hpc_dme_fastq_directry, hc_dme_new_fastq_file_path, metadata_json_file_path, platform)
 			else:
 				pass
 			for each_analysis_type in scaf_sample_Dict[each_sample]["analysis"]:
@@ -207,9 +246,10 @@ def build_new_structure(scaf_sample_Dict, destination_directory):
 				for each_analysis in scaf_sample_Dict[each_sample]["analysis"][each_analysis_type]:
 					analysis_file_name = os.path.basename(each_analysis).split(".tar")[0]
 					new_analysis_file_path = primary_analysis_directory + "/" + analysis_file_name + "_PA_" + each_analysis_type + ".tar"
+					hc_dme_new_analysis_file_path = hpc_dme_primary_analysis_directry + "/" + analysis_file_name + "_PA_" + each_analysis_type + ".tar"
 					Path(new_analysis_file_path).touch()
 					metadata_json_file_path = new_analysis_file_path + ".metadata.json"
-					build_analysis_metadata(primary_analysis_directory, new_analysis_file_path, metadata_json_file_path)
+					build_analysis_metadata(hpc_dme_primary_analysis_directry, hc_dme_new_analysis_file_path, metadata_json_file_path, platform)
 			else:
 				pass
 	else:
@@ -217,15 +257,19 @@ def build_new_structure(scaf_sample_Dict, destination_directory):
 	print("Done")
 	return True
 
-	
-source_directory = sys.argv[1]
-destination_directory = sys.argv[2]
-platform = sys.argv[3]
-
-scaf_sample_Dict = build_scaf_sample_Dict(source_directory)
-
-# print(scaf_sample_Dict)
-# sys.exit(2)
-build_new_structure(scaf_sample_Dict, destination_directory)
-
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+metadata_json = sys.argv[1]
+metadata_Dict = convert_metadata_json_to_dict(metadata_json)
+source_directory = metadata_Dict["source_directory"]
+destination_path = metadata_Dict["destination_path"]
+hpc_dme_path = metadata_Dict["hpc_dme_path"]
+platform = metadata_Dict["platform"]
+project_name = metadata_Dict["project_name"]
+top_metadata = metadata_Dict["top_metadata"]
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+scaf_sample_Dict = build_scaf_sample_Dict(source_directory)	
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+build_new_structure(scaf_sample_Dict, destination_path, hpc_dme_path, platform, project_name, top_metadata)
+print("recast is completed")
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
 
