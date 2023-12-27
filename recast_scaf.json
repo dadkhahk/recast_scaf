@@ -1,78 +1,23 @@
 {
 
 	"source_directory": "/data/dadkhahe/HPC_DME_Example/CS029608_Schultz",
+	"destination_path": "/data/dadkhahe/development/recast_scaf/try5",
+	"hpc_dme_path": "/CCR_SCAF_Archive/Anish_Thomas_lab/",
 	"project_name": "CS029608_Schultz",
-	"destination_path": "./try2",
-	"hpc_dme_path": "/hmpc_dme/scaf_folder",
-	"platform": "10x GEX 5' v2",
-	"top_metadata": {
-		"MetadataEntries": [
-			{
-			"attribute": "access",
-			"value": "Controlled Access",
-			"unit": "EMPTY_ATTR_UNIT",
-			"level": 1
-			},
-			{
-				"attribute": "project_status",
-				"value": "Completed",
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			},
-			{
-				"attribute": "project_title",
-				"value": "10x Genomics scRNA-Seq 5' v2",
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			},
-			{
-				"attribute": "project_poc",
-				"value": "schultzcw",
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			},
-			{
-				"attribute": "retention_years",
-				"value": 7,
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			},
-			{
-				"attribute": "collection_type",
-				"value": "Project",
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			},
-			{
-				"attribute": "project_poc_email",
-				"value": "christopher.schultz@nih.gov",
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			},
-			{
-				"attribute": "project_start_date",
-				"value": "2022-09-06",
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			},
-			{
-				"attribute": "registered_by",
-				"value": "dadkhahe",
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			},
-			{
-				"attribute": "project_id",
-				"value": "CS032747",
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			},
-			{
-				"attribute": "project_poc_affiliation",
-				"value": "DEVELOPMENTAL THERAPEUTICS BRANCH (HNC7Z02)",
-				"unit": "EMPTY_ATTR_UNIT",
-				"level": 1
-			}
-		]
-	}
+	"project_id": "CS029608_Schultz",
+	"project_title": "CS029608_Schultz",
+	"project_poc": "schultzcw",
+	"project_poc_email": "christopher.schultz@nih.gov",
+	"project_poc_affiliation": "DEVELOPMENTAL THERAPEUTICS BRANCH (HNC7Z02)",
+	"data_generator_affiliation": "CRTP",
+	"data_owner":"thomasa6",
+	"data_owner_email": "anish.thomas@nih.gov",
+	"data_owner_affiliation": "DEVELOPMENTAL THERAPEUTICS BRANCH (HNC7Z02)",
+	"project_start_date": "2022-09-06",
+	"retention_years": 7,
+	"data_generator": "CCR-SCAF",
+	"data_generator_email": "CCR-SCAF@nih.gov",
+	"hpc_dme_bookmark_path": "/CCR_SCAF_Archive/Anish_Thomas_lab/CS029608_Schultz",
+	"hpc_dme_bookmark_name":"CS029608",
+	"platform_name": "10x GEX 5' v2"
 }

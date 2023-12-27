@@ -7,11 +7,8 @@ import shutil
 import json
 
 """
-python recast_scaf.py /data/dadkhahe/HPC_DME_Example/CS029608_Schultz ./try2 "platform"
+python recast_scaf.py recast_scaf.json
 """
-###fix metadata path and set it as an argument
-###use this path:/CCR_SCAF_Archive/Anish_Thomas_lab/CS029608_Schultz/Analysis/
-###make a metadata file for project folder as well
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
 def convert_metadata_json_to_dict(metadata_json):
@@ -23,89 +20,309 @@ def convert_metadata_json_to_dict(metadata_json):
 	
 	return json_Dict
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
-def build_analysis_metadata(analysis_directory, new_analysis_file_path, metadata_file_path, platform):
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def build_sample_json_template(json_Dict, sample_name):
+	"""
+	"""
+	metadata_Dict = {}
+	metadata_Dict["metadataEntries"] = [
+		{
+			"attribute": "sample_id",
+			"value": sample_name
+		},
+		{
+			"attribute": "sample_name",
+			"value": sample_name
+		},
+		{
+			"attribute": "curation_status",
+			"value": "False"
+		},
+			
+		{
+			"attribute": "collection_type",
+			"value": "Sample"
+								},
+			{
+			"attribute": "data_generator",
+			"value": json_Dict["data_generator"]
+			
+		},
+		{
+			"attribute": "data_owner_affiliation",
+			"value": json_Dict["data_owner_affiliation"]
+		},
+		{
+			"attribute": "data_owner_email",
+			"value": json_Dict["data_owner_email"]
+								},
+		{
+			"attribute": "data_owner",
+			"value": json_Dict["data_owner"]
+								},
+							{
+			"attribute": "data_generator_email",
+			"value": json_Dict["data_generator_email"]
+								},
+		{
+			"attribute": "data_generator_affiliation",
+			"value": json_Dict["data_generator_affiliation"]
+								},
+		{
+			"attribute": "project_poc",
+			"value": json_Dict["project_poc"]
+
+		},
+		{
+			"attribute": "project_poc_affiliation",
+			"value": json_Dict["project_poc_affiliation"]
+
+		},
+		{
+			"attribute": "project_poc_email",
+			"value": json_Dict["project_poc_email"]
+
+		},
+		{
+			"attribute": "project_title",
+			"value": json_Dict["project_title"]
+	   },
+		{
+			"attribute": "project_id",
+			"value":  json_Dict["project_id"]
+
+		},
+		{
+			"attribute": "access",
+			"value": "Controlled Access"
+
+		},
+		{
+			"attribute": "project_start_date",
+			"value": "2021-06-15"
+		}
+		
+	]
+
+	sample_folder_json_path = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + sample_name + ".metadata.json"
+
+	with open(sample_folder_json_path, 'w', encoding='utf-8') as f:
+		json.dump(metadata_Dict, f, ensure_ascii=False, indent=4)
+
+	return True
+
+
+def build_analysis_json_template(json_Dict, analysis_tar_name):
 	"""
 	"""
 	metadata_Dict = {}
 	metadata_Dict["metadataEntries"] = [
 		{
 			"attribute": "object_name",
-			"value": os.path.abspath(new_analysis_file_path)
+			"value": json_Dict["hpc_dme_path"] + json_Dict["project_id"] + "/Analysis/" + analysis_tar_name
 		},
 		{
 			"attribute": "source_path",
-			"value": os.path.abspath(analysis_directory) + "/"
+			"value": json_Dict["hpc_dme_path"] + json_Dict["project_id"] + "/Analysis/"
 		},
 		{
 			"attribute": "platform_name",
-			"value": platform
+			"value": json_Dict["platform_name"]
 		}
 	]
 	metadata_Json = json.dumps(metadata_Dict)
-
-	with open(metadata_file_path, 'w', encoding='utf-8') as f:
+	analysis_json_path = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/Analysis/" + analysis_tar_name + ".metadata.json"
+	with open(analysis_json_path, 'w', encoding='utf-8') as f:
 		json.dump(metadata_Dict, f, ensure_ascii=False, indent=4)
 
 	return True
 
 
-def build_project_name_metadata(destination_path, project_name, top_metadata):
+def build_analysis_excel_json_template(json_Dict, excel_tar_name):
 	"""
 	"""
-	metadata_file_path = destination_path + "/" + project_name + ".metadata.json"
-	# metadata_ = json.dumps(top_metadata)
-
-	with open(metadata_file_path, 'w', encoding='utf-8') as f:
-		json.dump(top_metadata, f, ensure_ascii=False, indent=4)
-
-	return True
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
-def build_result_metadata(result_directory, new_result_file_path, metadata_file_path):
 	metadata_Dict = {}
 	metadata_Dict["metadataEntries"] = [
 		{
 			"attribute": "object_name",
-			"value": os.path.abspath(new_result_file_path)
+			"value": json_Dict["hpc_dme_path"] + json_Dict["project_id"] + "/Analysis/" + excel_tar_name
 		},
 		{
 			"attribute": "source_path",
-			"value": os.path.abspath(result_directory) + "/"
+			"value": json_Dict["hpc_dme_path"] + json_Dict["project_id"] + "/Analysis/"
 		}
 	]
 	metadata_Json = json.dumps(metadata_Dict)
-
-	with open(metadata_file_path, 'w', encoding='utf-8') as f:
+	excel_json_path = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/Analysis/" + excel_tar_name + ".metadata.json"
+	with open(excel_json_path, 'w', encoding='utf-8') as f:
 		json.dump(metadata_Dict, f, ensure_ascii=False, indent=4)
 
 	return True
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
-def build_fastq_metadata(fastq_directory, new_fastq_file_path, metadata_file_path, platform):
+
+def build_analysis_folder_json_template(json_Dict):
+	"""
+	"""
+	metadata_Dict = {}
+	metadata_Dict["metadataEntries"] = [
+		{
+		"attribute": "collection_type",
+		"value": "Analysis"
+		}
+	]
+	metadata_Json = json.dumps(metadata_Dict)
+	analysis_folder_json_path = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + "Analysis.metadata.json"
+	with open(analysis_folder_json_path, 'w', encoding='utf-8') as f:
+		json.dump(metadata_Dict, f, ensure_ascii=False, indent=4)
+
+	return True
+
+
+def build_fastq_folder_json_template(json_Dict, sample_name):
+	"""
+	"""
+	metadata_Dict = {}
+	metadata_Dict["metadataEntries"] = [
+		{
+		"attribute": "collection_type",
+		"value": "FASTQ"
+		}
+	]
+	metadata_Json = json.dumps(metadata_Dict)
+	fastq_folder_json_path = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + sample_name + "/FASTQ.metadata.json"
+	with open(fastq_folder_json_path, 'w', encoding='utf-8') as f:
+		json.dump(metadata_Dict, f, ensure_ascii=False, indent=4)
+
+	return True
+
+
+def build_fastq_json_template(json_Dict, sample_name, fastq_tar_name):
+	"""
+	"""
 	metadata_Dict = {}
 	metadata_Dict["metadataEntries"] = [
 		{
 			"attribute": "object_name",
-			"value": os.path.abspath(new_fastq_file_path)
+			"value": json_Dict["hpc_dme_path"] + json_Dict["project_id"] + "/" + sample_name + "/FASTQ/" + fastq_tar_name
 		},
 		{
 			"attribute": "source_path",
-			"value": os.path.abspath(fastq_directory) + "/"
+			"value": json_Dict["hpc_dme_path"] + json_Dict["project_id"] + "/" + sample_name + "/FASTQ/"
 		},
 		{
 			"attribute": "platform_name",
-			"value": platform
+			"value": json_Dict["platform_name"]
 		}
 	]
 	metadata_Json = json.dumps(metadata_Dict)
-
-	with open(metadata_file_path, 'w', encoding='utf-8') as f:
+	fastq_json_path = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + sample_name + "/FASTQ/" + fastq_tar_name + ".metadata.json"
+	with open(fastq_json_path, 'w', encoding='utf-8') as f:
 		json.dump(metadata_Dict, f, ensure_ascii=False, indent=4)
 
 	return True
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+
+def build_primary_folder_json_template(json_Dict, sample_name):
+	"""
+	"""
+	metadata_Dict = {}
+	metadata_Dict["metadataEntries"] = [
+		{
+		"attribute": "collection_type",
+		"value": "Primary_Analysis_Output"
+		}
+	]
+	metadata_Json = json.dumps(metadata_Dict)
+	primary_folder_json_path = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + sample_name + "/Primary_Analysis_Output.metadata.json"
+	with open(primary_folder_json_path, 'w', encoding='utf-8') as f:
+		json.dump(metadata_Dict, f, ensure_ascii=False, indent=4)
+
+	return True
+
+
+def build_primary_json_template(json_Dict, sample_name, primary_tar_name):
+	"""
+	"""
+	metadata_Dict = {}
+	metadata_Dict["metadataEntries"] = [
+		{
+			"attribute": "object_name",
+			"value": json_Dict["hpc_dme_path"] + json_Dict["project_id"] + "/" + sample_name + "/Primary_Analysis_Output/" + primary_tar_name
+		},
+		{
+			"attribute": "source_path",
+			"value": json_Dict["hpc_dme_path"] + json_Dict["project_id"] + "/" + sample_name + "/Primary_Analysis_Output/"
+		},
+		{
+			"attribute": "platform_name",
+			"value": json_Dict["platform_name"]
+		}
+	]
+	metadata_Json = json.dumps(metadata_Dict)
+	primary_json_path = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + sample_name + "/Primary_Analysis_Output/" + primary_tar_name + ".metadata.json"
+	with open(primary_json_path, 'w', encoding='utf-8') as f:
+		json.dump(metadata_Dict, f, ensure_ascii=False, indent=4)
+
+	return True
+
+
+def build_project_json_template(json_Dict):
+	"""
+	"""
+	metadata_Dict = {}
+	metadata_Dict["metadataEntries"] = [
+	{
+	"attribute": "access",
+	"value": "Controlled Access"
+	},
+	{
+		"attribute": "project_status",
+		"value": "Completed"
+	},
+	{
+		"attribute": "project_title",
+		"value": json_Dict["project_title"]
+	},
+	{
+		"attribute": "project_poc",
+		"value": json_Dict["project_poc"]
+	},
+	{
+		"attribute": "retention_years",
+		"value": json_Dict["retention_years"]
+	},
+	{
+		"attribute": "collection_type",
+		"value": "Project"
+	},
+	{
+		"attribute": "project_poc_email",
+		"value": json_Dict["project_poc_email"]
+	},
+	{
+		"attribute": "project_start_date",
+		"value": json_Dict["project_start_date"]
+	},
+	
+	{
+		"attribute": "project_id",
+		"value": json_Dict["project_id"]
+	},
+	{
+		"attribute": "project_poc_affiliation",
+		"value": json_Dict["project_poc_affiliation"]
+	}
+	]
+
+	metadata_Json = json.dumps(metadata_Dict)
+	project_json_file_path = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + ".metadata.json"
+	with open(project_json_file_path, 'w', encoding='utf-8') as f:
+		json.dump(metadata_Dict, f, ensure_ascii=False, indent=4)
+
+	return True
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 def build_scaf_sample_Dict(source_directory):
 	"""
 	"""
@@ -169,107 +386,120 @@ def build_scaf_sample_Dict(source_directory):
 
 	return scaf_sample_Dict
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
-def build_new_structure(scaf_sample_Dict, destination_path, hpc_dme_path, platform, project_name, top_metadata):
+
+def build_new_structure(json_Dict, scaf_sample_Dict):
 	"""
 	"""
+	destination_path = json_Dict["destination_path"]
 	if not os.path.exists(destination_path):
 		os.makedirs(destination_path)
-	build_project_name_metadata(destination_path, project_name, top_metadata)
-
-	destination_directory = destination_path + "/" + project_name
-
+	#+++++++++++++++++++++
+	project_directory= json_Dict["destination_path"] + "/" + json_Dict["project_id"]
+	if not os.path.exists(project_directory):
+		os.makedirs(project_directory)
+	build_project_json_template(json_Dict)
+	#+++++++++++++++++++++
 	for each_sample in scaf_sample_Dict:
-
+		##
 		if each_sample == "result":
-			#
-			result_directory = destination_directory + "/Analysis"
-			hpc_dme_result_directry = hpc_dme_path + "/Analysis"
-			if not os.path.exists(result_directory):
-				os.makedirs(result_directory)
-			else:
-				pass
-			for each_result in scaf_sample_Dict["result"]:
-
-				result_file = each_result.split("/")[-1]
-				new_result_file_path = result_directory + "/" + result_file + ".tar"
-				hpc_dme_result_file_Path = hpc_dme_result_directry + "/" + result_file + ".tar"
-				Path(new_result_file_path).touch()
-				metadata_json_file_path = new_result_file_path + ".metadata.json"
-				build_result_metadata(hpc_dme_result_directry, hpc_dme_result_file_Path, metadata_json_file_path)
-
-			else:
-				pass
-		elif each_sample == "excel_file":
-			#
-			result_directory = destination_directory + "/Analysis"
-			hpc_dme_result_directry = hpc_dme_path + "/Analysis"
-			if not os.path.exists(result_directory):
-				os.makedirs(result_directory)
-			else:
-				pass
-			for each_excel in scaf_sample_Dict["excel_file"]:
+			#analysis
+			# ++++++++++++++++++
+			analysis_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/Analysis/"
+			if not os.path.exists(analysis_directory):
+				os.makedirs(analysis_directory)
+			build_analysis_folder_json_template(json_Dict)
+			# ++++++++++++++++++
+			for each_analysis in scaf_sample_Dict["result"]:
 				##
-				each_excel_file = os.path.basename(each_excel)
-				new_excel_file_path = result_directory + "/" + each_excel_file
-				hpc_dme_excel_file_Path = hpc_dme_result_directry + "/" + each_excel_file
-				shutil.copyfile(each_excel, new_excel_file_path)
-				metadata_json_file_path = new_excel_file_path + ".metadata.json"
-				build_result_metadata(hpc_dme_result_directry, hpc_dme_excel_file_Path, metadata_json_file_path)
+				analysis_name = each_analysis.split("/")[-1] + ".tar"
+				analysis_file_name = analysis_directory + analysis_name
+				Path(analysis_file_name).touch()
+				build_analysis_json_template(json_Dict, analysis_name)
+
+			else:
+				##
+				pass
+			# ++++++++++++++++++
+		elif each_sample == "excel_file":
+			#excel file
+			# ++++++++++++++++++
+			analysis_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/Analysis/"
+			if not os.path.exists(analysis_directory):
+				os.makedirs(analysis_directory)
+			for each_excel in scaf_sample_Dict["excel_file"]:
+				excel_name = each_excel.split("/")[-1] + ".tar"
+				excel_file_name = analysis_directory + excel_name
+				Path(excel_file_name).touch()
+				build_analysis_excel_json_template(json_Dict, excel_name)
+			# ++++++++++++++++++
 		else:
-			#
-			sample_directory = destination_directory + "/" + each_sample
-			fastq_directory = destination_directory + "/" + each_sample + "/FASTQ"
-			hpc_dme_fastq_directry = hpc_dme_path + "/" + each_sample + "/FASTQ"
-			primary_analysis_directory = destination_directory + "/" + each_sample + "/Primary_Analysis_Output"
-			hpc_dme_primary_analysis_directry = hpc_dme_path + "/" + each_sample + "/Primary_Analysis_Output"
+			#primary and fastq
+			#+++++++++++++++++++
+			sample_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + each_sample
 			if not os.path.exists(sample_directory):
 				os.makedirs(sample_directory)
+			build_sample_json_template(json_Dict, each_sample)
+			#+++++++++++++++++++
+			#+++++++++++++++++++
+			fastq_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + each_sample + "/FASTQ"
+			if not os.path.exists(fastq_directory):
 				os.makedirs(fastq_directory)
-				os.makedirs(primary_analysis_directory)
-			else:
-				pass
+			build_fastq_folder_json_template(json_Dict, each_sample)
+			#+++++++++++++++++++
+			#+++++++++++++++++++
+			primary_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + each_sample + "/Primary_Analysis_Output"
+			if not os.path.exists(primary_directory):
+				os.makedirs(primary_directory)
+			build_primary_folder_json_template(json_Dict, each_sample)
+			#+++++++++++++++++++
 			for each_flowcell in scaf_sample_Dict[each_sample]["fastq"]:
 				##
 				for each_fastq in scaf_sample_Dict[each_sample]["fastq"][each_flowcell]:
 					##
+					#+++++++++++++++++++
 					fastq_file_name = os.path.basename(each_fastq).split(".tar")[0]
-					new_fastq_file_path = fastq_directory + "/" + fastq_file_name + "_FQ_" + each_flowcell + ".tar"
-					hc_dme_new_fastq_file_path = hpc_dme_fastq_directry + "/" + fastq_file_name + "_FQ_" + each_flowcell + ".tar"
-					Path(new_fastq_file_path).touch()
-					metadata_json_file_path = new_fastq_file_path + ".metadata.json"
-					build_fastq_metadata(hpc_dme_fastq_directry, hc_dme_new_fastq_file_path, metadata_json_file_path, platform)
+					fastq_file_path = fastq_directory + "/" + fastq_file_name + "_FQ_" + each_flowcell + ".tar"
+					Path(fastq_file_path).touch()
+					fastq_tar_name = fastq_file_name + "_FQ_" + each_flowcell + ".tar"
+					build_fastq_json_template(json_Dict, each_sample, fastq_tar_name)
+					#+++++++++++++++++++
+
+				else:
+					##
+					pass
 			else:
-				pass
-			for each_analysis_type in scaf_sample_Dict[each_sample]["analysis"]:
 				##
-				for each_analysis in scaf_sample_Dict[each_sample]["analysis"][each_analysis_type]:
-					analysis_file_name = os.path.basename(each_analysis).split(".tar")[0]
-					new_analysis_file_path = primary_analysis_directory + "/" + analysis_file_name + "_PA_" + each_analysis_type + ".tar"
-					hc_dme_new_analysis_file_path = hpc_dme_primary_analysis_directry + "/" + analysis_file_name + "_PA_" + each_analysis_type + ".tar"
-					Path(new_analysis_file_path).touch()
-					metadata_json_file_path = new_analysis_file_path + ".metadata.json"
-					build_analysis_metadata(hpc_dme_primary_analysis_directry, hc_dme_new_analysis_file_path, metadata_json_file_path, platform)
+				pass
+			#+++++++++++++++++++
+			for each_result_type in scaf_sample_Dict[each_sample]["analysis"]:
+				##
+				for each_result in scaf_sample_Dict[each_sample]["analysis"][each_result_type]:
+					##
+					#+++++++++++++++++++++++
+					result_file_name = os.path.basename(each_result).split(".tar")[0]
+					result_file_path = primary_directory + "/" + result_file_name + "_PA_" + each_result_type + ".tar"
+					Path(result_file_path).touch()
+					result_tar_name = result_file_name + "_PA_" + each_result_type + ".tar"
+					build_primary_json_template(json_Dict, each_sample, result_tar_name)
+					#+++++++++++++++++++++++
+				else:
+					pass
 			else:
 				pass
 	else:
+		##
 		pass
-	print("Done")
 	return True
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 metadata_json = sys.argv[1]
-metadata_Dict = convert_metadata_json_to_dict(metadata_json)
-source_directory = metadata_Dict["source_directory"]
-destination_path = metadata_Dict["destination_path"]
-hpc_dme_path = metadata_Dict["hpc_dme_path"]
-platform = metadata_Dict["platform"]
-project_name = metadata_Dict["project_name"]
-top_metadata = metadata_Dict["top_metadata"]
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
-scaf_sample_Dict = build_scaf_sample_Dict(source_directory)	
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
-build_new_structure(scaf_sample_Dict, destination_path, hpc_dme_path, platform, project_name, top_metadata)
-print("recast is completed")
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+json_Dict = convert_metadata_json_to_dict(metadata_json)
 
+source_directory = json_Dict["source_directory"]
+destination_path = json_Dict["destination_path"]
+
+scaf_sample_Dict = build_scaf_sample_Dict(source_directory)
+
+build_new_structure(json_Dict, scaf_sample_Dict)
+
+print("Done!")
