@@ -19,5 +19,7 @@
 	"data_generator_email": "CCR-SCAF@nih.gov",
 	"hpc_dme_bookmark_path": "/CCR_SCAF_Archive/Anish_Thomas_lab/CS029608_Schultz",
 	"hpc_dme_bookmark_name":"CS029608",
-	"platform_name": "10x GEX 5' v2"
+	"platform_name": "10x GEX 5' v2",
+	"swarm_file_path": "/data/dadkhahe/development/recast_scaf/try5/file_transfer.swarm",
+	"swarm_log_dir": "/data/dadkhahe/development/recast_scaf/try5/swarm.log"
 }

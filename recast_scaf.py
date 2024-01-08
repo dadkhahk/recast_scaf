@@ -20,6 +20,45 @@ def convert_metadata_json_to_dict(metadata_json):
 	
 	return json_Dict
 
+
+def initiate_swarm_file(swarm_file_path, swarm_log_path):
+	"""
+	"""
+	os.makedirs(os.path.dirname(swarm_file_path), exist_ok = True)
+	swarm_string = "#swarm -g 10 -t 2 --time 24:00:00 --sbatch --mail-type=ALL --logdir " + swarm_log_path + " -f " + swarm_file_path + "\n"
+
+	f = open(swarm_file_path, 'a')
+	f.write(swarm_string)
+	f.close()
+
+	return True
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def build_tar_swarm_script(source_directory, file_source_path, file_destination_path, swarm_file_path):
+	"""
+	tar -cWf /data/dadkhahe/development/test_tar/01_SummaryHTMLs.tar --directory="/data/dadkhahe/HPC_DME_Example/CS029608_Schultz/02_PrimaryAnalysisOutput/" 01_SummaryHTMLs
+	"""
+	#swarm_script = "tar -cWf " + file_destination_path + " " + file_source_path +  "\n"
+	
+	swarm_script = 'tar -cWf ' + file_destination_path + ' --directory="' + source_directory + '" ' + os.path.basename(file_source_path) +  ' \n'
+	f = open(swarm_file_path, 'a')
+	f.write(swarm_script)
+	f.close()
+
+	return True
+
+
+def build_copy_swarm_script(file_source_path, file_destination_path, swarm_file_path):
+	"""
+	"""
+	swarm_script = "cp " + file_source_path + " " + file_destination_path + "\n"
+	f = open(swarm_file_path, 'a')
+	f.write(swarm_script)
+	f.close()
+
+	return True
+
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def build_sample_json_template(json_Dict, sample_name):
@@ -387,16 +426,16 @@ def build_scaf_sample_Dict(source_directory):
 	return scaf_sample_Dict
 
 
-def build_new_structure(json_Dict, scaf_sample_Dict):
+def build_new_structure(json_Dict, scaf_sample_Dict, swarm_file_path):
 	"""
 	"""
 	destination_path = json_Dict["destination_path"]
 	if not os.path.exists(destination_path):
-		os.makedirs(destination_path)
+		os.makedirs(destination_path,exist_ok = True)
 	#+++++++++++++++++++++
 	project_directory= json_Dict["destination_path"] + "/" + json_Dict["project_id"]
 	if not os.path.exists(project_directory):
-		os.makedirs(project_directory)
+		os.makedirs(project_directory,exist_ok = True)
 	build_project_json_template(json_Dict)
 	#+++++++++++++++++++++
 	for each_sample in scaf_sample_Dict:
@@ -406,14 +445,17 @@ def build_new_structure(json_Dict, scaf_sample_Dict):
 			# ++++++++++++++++++
 			analysis_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/Analysis/"
 			if not os.path.exists(analysis_directory):
-				os.makedirs(analysis_directory)
+				os.makedirs(analysis_directory,exist_ok = True)
 			build_analysis_folder_json_template(json_Dict)
 			# ++++++++++++++++++
 			for each_analysis in scaf_sample_Dict["result"]:
 				##
+				source_directory = os.path.dirname(each_analysis)
 				analysis_name = each_analysis.split("/")[-1] + ".tar"
 				analysis_file_name = analysis_directory + analysis_name
-				Path(analysis_file_name).touch()
+				build_tar_swarm_script(source_directory, each_analysis, analysis_file_name, swarm_file_path)
+
+				#Path(analysis_file_name).touch()
 				build_analysis_json_template(json_Dict, analysis_name)
 
 			else:
@@ -425,11 +467,14 @@ def build_new_structure(json_Dict, scaf_sample_Dict):
 			# ++++++++++++++++++
 			analysis_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/Analysis/"
 			if not os.path.exists(analysis_directory):
-				os.makedirs(analysis_directory)
+				os.makedirs(analysis_directory,exist_ok = True)
 			for each_excel in scaf_sample_Dict["excel_file"]:
+				source_directory = os.path.dirname(each_excel)
 				excel_name = each_excel.split("/")[-1] + ".tar"
 				excel_file_name = analysis_directory + excel_name
-				Path(excel_file_name).touch()
+
+				build_tar_swarm_script(source_directory, each_excel, excel_file_name, swarm_file_path)
+				#Path(excel_file_name).touch()
 				build_analysis_excel_json_template(json_Dict, excel_name)
 			# ++++++++++++++++++
 		else:
@@ -437,19 +482,19 @@ def build_new_structure(json_Dict, scaf_sample_Dict):
 			#+++++++++++++++++++
 			sample_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + each_sample
 			if not os.path.exists(sample_directory):
-				os.makedirs(sample_directory)
+				os.makedirs(sample_directory,exist_ok = True)
 			build_sample_json_template(json_Dict, each_sample)
 			#+++++++++++++++++++
 			#+++++++++++++++++++
 			fastq_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + each_sample + "/FASTQ"
 			if not os.path.exists(fastq_directory):
-				os.makedirs(fastq_directory)
+				os.makedirs(fastq_directory,exist_ok = True)
 			build_fastq_folder_json_template(json_Dict, each_sample)
 			#+++++++++++++++++++
 			#+++++++++++++++++++
 			primary_directory = json_Dict["destination_path"] + "/" + json_Dict["project_id"] + "/" + each_sample + "/Primary_Analysis_Output"
 			if not os.path.exists(primary_directory):
-				os.makedirs(primary_directory)
+				os.makedirs(primary_directory,exist_ok = True)
 			build_primary_folder_json_template(json_Dict, each_sample)
 			#+++++++++++++++++++
 			for each_flowcell in scaf_sample_Dict[each_sample]["fastq"]:
@@ -459,7 +504,8 @@ def build_new_structure(json_Dict, scaf_sample_Dict):
 					#+++++++++++++++++++
 					fastq_file_name = os.path.basename(each_fastq).split(".tar")[0]
 					fastq_file_path = fastq_directory + "/" + fastq_file_name + "_FQ_" + each_flowcell + ".tar"
-					Path(fastq_file_path).touch()
+					build_copy_swarm_script(each_fastq, fastq_file_path, swarm_file_path)
+					#Path(fastq_file_path).touch()
 					fastq_tar_name = fastq_file_name + "_FQ_" + each_flowcell + ".tar"
 					build_fastq_json_template(json_Dict, each_sample, fastq_tar_name)
 					#+++++++++++++++++++
@@ -478,7 +524,8 @@ def build_new_structure(json_Dict, scaf_sample_Dict):
 					#+++++++++++++++++++++++
 					result_file_name = os.path.basename(each_result).split(".tar")[0]
 					result_file_path = primary_directory + "/" + result_file_name + "_PA_" + each_result_type + ".tar"
-					Path(result_file_path).touch()
+					build_copy_swarm_script(each_result, result_file_path, swarm_file_path)
+					#Path(result_file_path).touch()
 					result_tar_name = result_file_name + "_PA_" + each_result_type + ".tar"
 					build_primary_json_template(json_Dict, each_sample, result_tar_name)
 					#+++++++++++++++++++++++
@@ -493,13 +540,22 @@ def build_new_structure(json_Dict, scaf_sample_Dict):
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 metadata_json = sys.argv[1]
+
 json_Dict = convert_metadata_json_to_dict(metadata_json)
+
+
+
+swarm_file_path = json_Dict["swarm_file_path"]
+swarm_log_path = json_Dict["swarm_log_dir"]
+initiate_swarm_file(swarm_file_path, swarm_log_path)
+
+
 
 source_directory = json_Dict["source_directory"]
 destination_path = json_Dict["destination_path"]
 
 scaf_sample_Dict = build_scaf_sample_Dict(source_directory)
 
-build_new_structure(json_Dict, scaf_sample_Dict)
+build_new_structure(json_Dict, scaf_sample_Dict, swarm_file_path)
 
 print("Done!")
